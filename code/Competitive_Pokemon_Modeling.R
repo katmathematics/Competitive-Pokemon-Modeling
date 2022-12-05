@@ -1,3 +1,6 @@
+# PROJECT DESCRIPTION ----
+# This analysis is a final project for STAT 172
+# Contributors: Katja Mathesius, Amanda Perrira, Ellie Reece
 # INITIAL ----
 # Clear workspace
 rm(list = ls())
@@ -17,41 +20,53 @@ pokeDataLoc <- "data/pokemon-data.csv"
 moveDataLoc <- "data/move-data.csv"
 
 # DATA EXPLORATION ----
-
 # Read in the Pokemon and Moves data
 pokemon = read.csv(pokeDataLoc, sep=";", header=T, stringsAsFactors = TRUE)
 moves = read.csv(moveDataLoc, sep=',', header = T)
 
-
+# Initial view of the pokemon data frame
+# This is the primary df for this project
 head(pokemon) 
 str(pokemon) 
 dim(pokemon) 
-#String - Name, Tier
-#List of strings - Types, Abilities, Next Evolution(s), Moves (movenames)
-#Integers - HP, Attack, Defense, Special.Attack, Special.Defense, Speed
 
+## Variables in Pokemon ##
+#String: Name, Tier
+#List of strings: Types, Abilities, Next Evolution(s), Moves (movenames)
+#Integers: HP, Attack, Defense, Special.Attack, Special.Defense, Speed
+
+# Initial view of the moves data frame
+# This is a supplementary df for this project to assist in cleaning moves
 head(moves)
 str(moves)
 summary(moves$Power)
 subset(moves, moves$Power == 'None')
-#Strings - Name, Type, Category, Contest
-#Integers - PP, Power, Accuracy, Gen
-#Int or None - Power, Accuracy
 
-# DATA CLEANING -----
+## Variables in Moves ##
+#Strings: Name, Type, Category, Contest
+#Integers: PP, Power, Accuracy, Gen
+#Int or None: Power, Accuracy
+
+# DATA CLEANING ----
+
+## Column Header Cleaning ##
+
+# New column headers for the Pokemon df
 colnames(pokemon) <- c('Poke_name','Poke_type','Abilities','Tier','Hit_points',
                        'Attack','Defense','Special_attack','Speed','Special_defense',
                        'Next_evolution','Moves')
 
+# New column headers for the Move df
 colnames(moves) <- c('Index','Move_name','Move_type','Category','Contest','Power_points','Power',
                      'Accuracy','Generation')
 
+# Check that these changes worked
 head(pokemon)
 head(moves)
 
-## Evolution Variable
-# Turn evolution into a binary variable based on if a pokemon 
-# does or doesn't have an evolution. Does = 1, Does not = 0
+## Evolution Binary Variable ##
+# Turn evolution into a binary variable based on if a Pokemon 
+# does or doesn't have an evolution. Does = 1, Does Not = 0.
 
 # Convert Evo to Character Type
 pokemon$Next_evolution = as.character(pokemon$Next_evolution)
@@ -154,8 +169,6 @@ pokemon[1:50,]
 
 # DUMMY VARIABLES - TYPES & ABILITIES ----
 
-#pokemon$Comp_Bin <- ifelse(pokemon$Tier == "OU", 1, 0)
-
 elemental_types <- c("Normal", "Fire", "Water", "Grass", "Electric", "Ice", 
                      "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", 
                      "Rock", "Ghost", "Dark", "Dragon", "Steel", "Fairy")
@@ -218,6 +231,65 @@ abilities_list <- c("Adaptability","Aerilate","Aftermath","Air Lock","Analytic",
                     "Water Compaction","Water Veil","Weak Armor","White Smoke",
                     "Wimp Out","Wonder Guard","Wonder Skin","Zen Mode")
 
+abilities_names_list = c("Adaptability","Aerilate","Aftermath","Air_Lock","Analytic",
+                    "Anger_Point","Anticipation","Arena_Trap","Aroma_Veil",
+                    "As_One","Aura_Break","Bad_Dreams","Ball_Fetch","Battery",
+                    "Battle_Armor","Battle_Bond","Beast_Boost","Berserk",
+                    "Big_Pecks","Blaze","Bulletproof","Cheek_Pouch","Chilling_
+Neigh","Chlorophyll","Clear_Body","Cloud_Nine","Color_Change",
+                    "Comatose","Competitive","Compound_Eyes","Contrary",
+                    "Corrosion","Cotton_Down","Curious_Medicine","Cursed_Body",
+                    "Cute_Charm","Damp","Dancer","Dark_Aura","Dauntless_Shield",
+                    "Dazzling","Defeatist","Defiant","Delta_Stream","Desolate_
+Land","Disguise","Download","Dragon's_Maw","Drizzle",
+                    "Drought","Dry_Skin","Early_Bird","Effect_Spore","Electric_
+Surge","Emergency_Exit","Fairy_Aura","Filter","Flame_Body",
+                    "Flare_Boost","Flash_Fire","Flower_Gift","Flower_Veil",
+                    "Fluffy","Forecast","Forewarn","Friend_Guard","Frisk","Full_
+Metal_Body","Fur_Coat","Gale_Wings","Galvanize","Gluttony",
+                    "Gooey","Gorilla_Tactics","Grass_Pelt","Grassy_Surge","Grim
+Neigh","Gulp_Missile","Guts","Harvest","Healer","Heatproof",
+                    "Heavy_Metal","Honey_Gather","Huge_Power","Hunger_Switch",
+                    "Hustle","Hydration","Hyper_Cutter","Ice_Body","Ice_Face",
+                    "Ice_Scales","Illuminate","Illusion","Immunity","Imposter",
+                    "Infiltrator","Innards_Out","Inner_Focus","Insomnia","Intimidate",
+                    "Intrepid_Sword","Iron_Barbs","Iron_Fist","Justified","Keen_Eye",
+                    "Klutz","Leaf_Guard","Levitate","Libero","Light_Metal",
+                    "Lightning_Rod","Limber","Liquid_Ooze","Liquid_Voice","Long_
+Reach","Magic_Bounce","Magic_Guard","Magician","Magma_Armor",
+                    "Magnet_Pull","Marvel_Scale","Mega_Launcher","Merciless",
+                    "Mimicry","Minus","Mirror_Armor","Misty_Surge","Mold_Breaker",
+                    "Moody","Motor_Drive","Moxie","Multiscale","Multitype","Mummy",
+                    "Natural_Cure","Neuroforce","Neutralizing_Gas","No_Guard",
+                    "Normalize","Oblivious","Overcoat","Overgrow","Own_Tempo",
+                    "Parental_Bond","Pastel_Veil","Perish_Body","Pickpocket",
+                    "Pickup","Pixilate","Plus","Poison_Heal","Poison_Point",
+                    "Poison_Touch","Power_Construct","Power_of_Alchemy","Power_
+Spot","Prankster","Pressure","Primordial_Sea","Prism_Armor",
+                    "Propeller_Tail","Protean","Psychic_Surge","Punk_Rock","Pure
+Power","Queenly_Majesty","Quick_Draw","Quick_Feet","Rain_
+Dish","Rattled","Receiver","Reckless","Refrigerate","Regenerator",
+                    "Ripen","Rivalry","RKS_System","Rock_Head","Rough_Skin",
+                    "Run_Away","Sand_Force","Sand_Rush","Sand_Spit","Sand_Stream",
+                    "Sand_Veil","Sap_Sipper","Schooling","Scrappy","Screen_Cleaner",
+                    "Serene_Grace","Shadow_Shield","Shadow_Tag","Shed_Skin",
+                    "Sheer_Force","Shell_Armor","Shield_Dust","Shields_Down",
+                    "Simple","Skill_Link","Slow_Start","Slush_Rush","Sniper",
+                    "Snow_Cloak","Snow_Warning","Solar_Power","Solid_Rock",
+                    "Soul-Heart","Soundproof","Speed_Boost","Stakeout","Stall",
+                    "Stalwart","Stamina","Stance_Change","Static","Steadfast",
+                    "Steam_Engine","Steelworker","Steely_Spirit","Stench",
+                    "Sticky_Hold","Storm_Drain","Strong_Jaw","Sturdy","Suction_
+Cups","Super_Luck","Surge_Surfer","Swarm","Sweet_Veil",
+                    "Swift_Swim","Symbiosis","Synchronize","Tangled_Feet",
+                    "Tangling_Hair","Technician","Telepathy","Teravolt","Thick_
+Fat","Tinted_Lens","Torrent","Tough_Claws","Toxic_Boost",
+                    "Trace","Transistor","Triage","Truant","Turboblaze","Unaware",
+                    "Unburden","Unnerve","Unseen_Fist","Victory_Star","Vital_
+Spirit","Wandering_Spirit","Water_Absorb","Water_Bubble",
+                    "Water_Compaction","Water_Veil","Weak_Armor","White_Smoke",
+                    "Wimp_Out","Wonder_Guard","Wonder_Skin","Zen_Mode")
+
 str(pokemon)
 summary(pokemon)
 head(pokemon)
@@ -233,7 +305,7 @@ for(i in seq_along(elemental_types)){
 
 # Create a binary variable for abilities
 for(i in seq_along(abilities_list)){
-  pokemon[abilities_list[i]] <- ifelse(str_detect(pokemon$Abilities, abilities_list[i]), 1, 0)
+  pokemon[abilities_names_list[i]] <- ifelse(str_detect(pokemon$Abilities, abilities_list[i]), 1, 0)
 }
 
 # Drop the variables that have been cleaned
