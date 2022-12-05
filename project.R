@@ -1,5 +1,16 @@
 #GETTING STARTED ----
 rm(list = ls())
+
+#import packages
+library(randomForest)
+library(ggplot2)
+library(pROC)
+library(dplyr)
+install.packages('tidyr')
+library(tidyr)
+library(stringr)
+
+#Read in Pokemon Data
 pokemon = read.csv("pokemon-data.csv", sep=";", header=T, stringsAsFactors = TRUE)
 head(pokemon) 
 str(pokemon) 
@@ -9,7 +20,8 @@ dim(pokemon)
 #Integers - HP, Attack, Defense, Special.Attack, Special.Defense, Speed
 View(pokemon)
 
-moves = read.csv("move-data.csv", sep=',', header = T)
+#Read in Moves Data
+moves = read.csv("move-data.csv", sep=',', header = T, stringsAsFactors = FALSE)
 View(moves)
 head(moves)
 str(moves)
@@ -18,23 +30,6 @@ subset(moves, moves$Power == 'None')
 #Strings - Name, Type, Category, Contest
 #Integers - PP, Power, Accuracy, Gen
 #Int or None - Power, Accuracy
-
-#########CLEANING DATA-----
-# BINARY VARIABLE - EVOLUTION ----
-#Make Character Type
-pokemon$Next.Evolution.s.= as.character(pokemon$Next.Evolution.s.)
-#If string length > 3, then yes evolution... 3 because of '[]' entries
-pokemon$evol_bin <- ifelse(nchar(pokemon$Next.Evolution.s.) >= 3, 1, 0)
-#Checking Result
-unique(pokemon$evol_bin)
-
-#import packages
-library(randomForest)
-library(ggplot2)
-library(pROC)
-library(dplyr)
-library(tidyr)
-library(stringr)
 
 #### column names 
 colnames(pokemon) <- c('Poke_name','Poke_type','Abilities','Tier','Hit_points',
@@ -45,6 +40,17 @@ colnames(moves) <- c('Index','Move_name','Move_type','Category','Contest','Power
                      'Accuracy','Generation')
 head(pokemon)
 head(moves)
+
+
+#########CLEANING DATA-----
+# BINARY VARIABLE - EVOLUTION ----
+#Make Character Type
+pokemon$Next_evolution= as.character(pokemon$Next_evolution)
+#If string length > 3, then yes evolution... 3 because of '[]' entries
+pokemon$evol_bin <- ifelse(nchar(pokemon$Next_evolution) >= 3, 1, 0)
+#Checking Result
+unique(pokemon$evol_bin)
+
 
 #MISSING VALUES ----
 #Find missing values in pokemon 
@@ -63,7 +69,7 @@ moves$Accuracy
 sum(moves$Accurary =='None')
 sum(moves$Power == 'None')
 
-#BINARY Y (Tier)----
+#BINARY Y (TIER)----
 pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", 1,0)
 head(pokemon)
 summary(pokemon$Tier)
@@ -90,8 +96,8 @@ LowPower <- unlist(LowPower$Move_name)
 NoPower <- unlist(NoPower$Move_name)
 
 #testing 
-test <- moveone[3]
-test %in% ModeratePower
+#test <- move_name[3]
+#test %in% ModeratePower
 
 # VARIABLE CLEANING - MOVES  ----
 #counting number of each type of move in the moveslist for each pokemon
@@ -206,15 +212,16 @@ summary(pokemon)
 head(pokemon)
 describe(pokemon)
 
-# Checks the number of overused pokemon in the data set
-length(which(pokemon$Comp_Bin==1))
-
 # Create a binary variable for typings
 for(i in seq_along(elemental_types)){
-  pokemon[elemental_types[i]] <- ifelse(str_detect(pokemon$Types, elemental_types[i]), 1, 0)
+  pokemon[elemental_types[i]] <- ifelse(str_detect(pokemon$Poke_type, elemental_types[i]), 1, 0)
 }
 
 # Create a binary variable for abilities
 for(i in seq_along(abilities_list)){
   pokemon[abilities_list[i]] <- ifelse(str_detect(pokemon$Abilities, abilities_list[i]), 1, 0)
 }
+
+#DROPPING OLD VARIABLES ----
+pokemon = subset(pokemon, select = -c(Poke_type,Abilities,Tier,Next_evolution, Moves))
+View(pokemon)
