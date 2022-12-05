@@ -148,64 +148,67 @@ pokemon$Comp_Bin <- ifelse(pokemon$Tier == "OU", 1, 0)
 elemental_types <- c("Normal", "Fire", "Water", "Grass", "Electric", "Ice", 
                      "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", 
                      "Rock", "Ghost", "Dark", "Dragon", "Steel", "Fairy")
-abilities_list <- c("Adaptability","Aerilate","Aftermath","Air Lock","Analytic",
-                    "Anger Point","Anticipation","Arena Trap","Aroma Veil",
-                    "As One","Aura Break","Bad Dreams","Ball Fetch","Battery",
-                    "Battle Armor","Battle Bond","Beast Boost","Berserk",
-                    "Big Pecks","Blaze","Bulletproof","Cheek Pouch","Chilling 
-                    Neigh","Chlorophyll","Clear Body","Cloud Nine","Color Change",
-                    "Comatose","Competitive","Compound Eyes","Contrary",
-                    "Corrosion","Cotton Down","Curious Medicine","Cursed Body",
-                    "Cute Charm","Damp","Dancer","Dark Aura","Dauntless Shield",
-                    "Dazzling","Defeatist","Defiant","Delta Stream","Desolate 
-                    Land","Disguise","Download","Dragon's Maw","Drizzle",
-                    "Drought","Dry Skin","Early Bird","Effect Spore","Electric 
-                    Surge","Emergency Exit","Fairy Aura","Filter","Flame Body",
-                    "Flare Boost","Flash Fire","Flower Gift","Flower Veil",
-                    "Fluffy","Forecast","Forewarn","Friend Guard","Frisk","Full 
-                    Metal Body","Fur Coat","Gale Wings","Galvanize","Gluttony",
-                    "Gooey","Gorilla Tactics","Grass Pelt","Grassy Surge","Grim
-                    Neigh","Gulp Missile","Guts","Harvest","Healer","Heatproof",
-                    "Heavy Metal","Honey Gather","Huge Power","Hunger Switch",
-                    "Hustle","Hydration","Hyper Cutter","Ice Body","Ice Face",
-                    "Ice Scales","Illuminate","Illusion","Immunity","Imposter",
-                    "Infiltrator","Innards Out","Inner Focus","Insomnia","Intimidate",
-                    "Intrepid Sword","Iron Barbs","Iron Fist","Justified","Keen Eye",
-                    "Klutz","Leaf Guard","Levitate","Libero","Light Metal",
-                    "Lightning Rod","Limber","Liquid Ooze","Liquid Voice","Long 
-                    Reach","Magic Bounce","Magic Guard","Magician","Magma Armor",
-                    "Magnet Pull","Marvel Scale","Mega Launcher","Merciless",
-                    "Mimicry","Minus","Mirror Armor","Misty Surge","Mold Breaker",
-                    "Moody","Motor Drive","Moxie","Multiscale","Multitype","Mummy",
-                    "Natural Cure","Neuroforce","Neutralizing Gas","No Guard",
-                    "Normalize","Oblivious","Overcoat","Overgrow","Own Tempo",
-                    "Parental Bond","Pastel Veil","Perish Body","Pickpocket",
-                    "Pickup","Pixilate","Plus","Poison Heal","Poison Point",
-                    "Poison Touch","Power Construct","Power of Alchemy","Power 
-                    Spot","Prankster","Pressure","Primordial Sea","Prism Armor",
-                    "Propeller Tail","Protean","Psychic Surge","Punk Rock","Pure
-                    Power","Queenly Majesty","Quick Draw","Quick Feet","Rain 
-                    Dish","Rattled","Receiver","Reckless","Refrigerate","Regenerator",
-                    "Ripen","Rivalry","RKS System","Rock Head","Rough Skin",
-                    "Run Away","Sand Force","Sand Rush","Sand Spit","Sand Stream",
-                    "Sand Veil","Sap Sipper","Schooling","Scrappy","Screen Cleaner",
-                    "Serene Grace","Shadow Shield","Shadow Tag","Shed Skin",
-                    "Sheer Force","Shell Armor","Shield Dust","Shields Down",
-                    "Simple","Skill Link","Slow Start","Slush Rush","Sniper",
-                    "Snow Cloak","Snow Warning","Solar Power","Solid Rock",
-                    "Soul-Heart","Soundproof","Speed Boost","Stakeout","Stall",
-                    "Stalwart","Stamina","Stance Change","Static","Steadfast",
-                    "Steam Engine","Steelworker","Steely Spirit","Stench",
-                    "Sticky Hold","Storm Drain","Strong Jaw","Sturdy","Suction 
-                    Cups","Super Luck","Surge Surfer","Swarm","Sweet Veil",
-                    "Swift Swim","Symbiosis","Synchronize","Tangled Feet",
-                    "Tangling Hair","Technician","Telepathy","Teravolt","Thick 
-                    Fat","Tinted Lens","Torrent","Tough Claws","Toxic Boost",
-                    "Trace","Transistor","Triage","Truant","Turboblaze","Unaware",
-                    "Unburden","Unnerve","Unseen Fist","Victory Star","Vital 
-                    Spirit","Wandering Spirit","Water Absorb","Water Bubble",
-                    "Water Compaction","Water Veil","Weak Armor","White Smoke",
-                    "Wimp Out","Wonder Guard","Wonder Skin","Zen Mode")
+
+abilities_names_list = c("Adaptability","Aerilate","Aftermath","Air_Lock","Analytic",
+                         "Anger_Point","Anticipation","Arena_Trap","Aroma_Veil",
+                         "As_One","Aura_Break","Bad_Dreams","Ball_Fetch","Battery",
+                         "Battle_Armor","Battle_Bond","Beast_Boost","Berserk",
+                         "Big_Pecks","Blaze","Bulletproof","Cheek_Pouch",
+                         "Chilling_Neigh","Chlorophyll","Clear_Body","Cloud_Nine","Color_Change",
+                         "Comatose","Competitive","Compound_Eyes","Contrary",
+                         "Corrosion","Cotton_Down","Curious_Medicine","Cursed_Body",
+                         "Cute_Charm","Damp","Dancer","Dark_Aura","Dauntless_Shield",
+                         "Dazzling","Defeatist","Defiant","Delta_Stream",
+                         "Desolate_Land","Disguise","Download","Dragons_Maw","Drizzle",
+                         "Drought","Dry_Skin","Early_Bird","Effect_Spore",
+                         "Electric_Surge","Emergency_Exit","Fairy_Aura","Filter","Flame_Body",
+                         "Flare_Boost","Flash_Fire","Flower_Gift","Flower_Veil",
+                         "Fluffy","Forecast","Forewarn","Friend_Guard","Frisk",
+                         "Full_Metal_Body","Fur_Coat","Gale_Wings","Galvanize","Gluttony",
+                         "Gooey","Gorilla_Tactics","Grass_Pelt","Grassy_Surge",
+                         "Grim_Neigh","Gulp_Missile","Guts","Harvest","Healer","Heatproof",
+                         "Heavy_Metal","Honey_Gather","Huge_Power","Hunger_Switch",
+                         "Hustle","Hydration","Hyper_Cutter","Ice_Body","Ice_Face",
+                         "Ice_Scales","Illuminate","Illusion","Immunity","Imposter",
+                         "Infiltrator","Innards_Out","Inner_Focus","Insomnia","Intimidate",
+                         "Intrepid_Sword","Iron_Barbs","Iron_Fist","Justified","Keen_Eye",
+                         "Klutz","Leaf_Guard","Levitate","Libero","Light_Metal",
+                         "Lightning_Rod","Limber","Liquid_Ooze","Liquid_Voice","Long_Reach",
+                         "Magic_Bounce","Magic_Guard","Magician","Magma_Armor",
+                         "Magnet_Pull","Marvel_Scale","Mega_Launcher","Merciless",
+                         "Mimicry","Minus","Mirror_Armor","Misty_Surge","Mold_Breaker",
+                         "Moody","Motor_Drive","Moxie","Multiscale","Multitype","Mummy",
+                         "Natural_Cure","Neuroforce","Neutralizing_Gas","No_Guard",
+                         "Normalize","Oblivious","Overcoat","Overgrow","Own_Tempo",
+                         "Parental_Bond","Pastel_Veil","Perish_Body","Pickpocket",
+                         "Pickup","Pixilate","Plus","Poison_Heal","Poison_Point",
+                         "Poison_Touch","Power_Construct","Power_of_Alchemy","Power_Spot",
+                         "Prankster","Pressure","Primordial_Sea","Prism_Armor",
+                         "Propeller_Tail","Protean","Psychic_Surge","Punk_Rock","Pure_Power",
+                         "Queenly_Majesty","Quick_Draw","Quick_Feet","Rain_Dish","Rattled",
+                         "Receiver","Reckless","Refrigerate","Regenerator",
+                         "Ripen","Rivalry","RKS_System","Rock_Head","Rough_Skin",
+                         "Run_Away","Sand_Force","Sand_Rush","Sand_Spit","Sand_Stream",
+                         "Sand_Veil","Sap_Sipper","Schooling","Scrappy","Screen_Cleaner",
+                         "Serene_Grace","Shadow_Shield","Shadow_Tag","Shed_Skin",
+                         "Sheer_Force","Shell_Armor","Shield_Dust","Shields_Down",
+                         "Simple","Skill_Link","Slow_Start","Slush_Rush","Sniper",
+                         "Snow_Cloak","Snow_Warning","Solar_Power","Solid_Rock",
+                         "Soul_Heart","Soundproof","Speed_Boost","Stakeout","Stall",
+                         "Stalwart","Stamina","Stance_Change","Static","Steadfast",
+                         "Steam_Engine","Steelworker","Steely_Spirit","Stench",
+                         "Sticky_Hold","Storm_Drain","Strong_Jaw","Sturdy","Suction_Cups",
+                         "Super_Luck","Surge_Surfer","Swarm","Sweet_Veil",
+                         "Swift_Swim","Symbiosis","Synchronize","Tangled_Feet",
+                         "Tangling_Hair","Technician","Telepathy","Teravolt","Thick_Fat",
+                         "Tinted_Lens","Torrent","Tough_Claws","Toxic_Boost",
+                         "Trace","Transistor","Triage","Truant","Turboblaze","Unaware",
+                         "Unburden","Unnerve","Unseen_Fist","Victory_Star","Vital_Spirit",
+                         "Wandering_Spirit","Water_Absorb","Water_Bubble",
+                         "Water_Compaction","Water_Veil","Weak_Armor","White_Smoke",
+                         "Wimp_Out","Wonder_Guard","Wonder_Skin","Zen_Mode")
+
+
 
 str(pokemon)
 summary(pokemon)
@@ -218,10 +221,59 @@ for(i in seq_along(elemental_types)){
 }
 
 # Create a binary variable for abilities
-for(i in seq_along(abilities_list)){
-  pokemon[abilities_list[i]] <- ifelse(str_detect(pokemon$Abilities, abilities_list[i]), 1, 0)
+for(i in seq_along(abilities_names_list)){
+  pokemon[abilities_names_list[i]] <- ifelse(str_detect(pokemon$Abilities, abilities_names_list[i]), 1, 0)
 }
 
 #DROPPING OLD VARIABLES ----
-pokemon = subset(pokemon, select = -c(Poke_type,Abilities,Tier,Next_evolution, Moves))
+pokemon = subset(pokemon, select = -c(Poke_name,Poke_type,Abilities,Tier,Next_evolution, Moves))
 View(pokemon)
+
+#BEGIN RANDOM FORESTS ----
+#DATA PREPARATION ----
+#Set the Seed
+RNGkind(sample.kind = 'default')
+set.seed(123) 
+
+train.idx = sample(x = 1:nrow(pokemon), size = 0.8*nrow(pokemon))
+
+#Make Training Data
+train.df = pokemon[train.idx, ]
+#Make Testing Data
+test.df = pokemon[-train.idx, ]
+
+#Check for 'char' types
+str(train.df) #None
+#BASELINE FOREST ----
+train.df$tier_bin <- as.factor(train.df$tier_bin)
+myforest = randomForest(tier_bin ~ ., 
+                        data = train.df, #training data
+                        ntree = 1000, #B - # of classification trees in forest
+                        mtry = 17, #choose m - sqrt( #x variables) = sqrt(297)
+                        importance = TRUE)
+#'importance = TRUE' will help us identify important predictors (later), but it
+# does make the algorithm slower.
+myforest #OOB = 2.86%
+
+#TUNING THE TREE -----
+mtry = c(1:17) #can only be as large as number of X variables
+
+#Make Room for 'm' and OOB Error (empty data frame)
+keeps = data.frame(m = rep(NA, length(mtry)), 
+                   OOB_error_rate = rep(NA, length(mtry)))
+
+#Create a Loop that will Fill the Keeps Data Frame
+for (idx in 1:length(mtry)){
+  print(paste0("Fitting m = ", mtry[idx]))
+  tempforest = randomForest(tier_bin ~ .,
+                            data = train.df, 
+                            ntree = 1000,
+                            mtry = mtry[idx]) #mtry is varying
+  #Record OOB error & corresponding mtry for each forest fit
+  keeps[idx, 'm'] = mtry[idx]
+  keeps[idx, 'OOB_error_rate'] = mean(predict(tempforest) != train.df$tier_bin)
+}
+
+#Plot the OOB Error Rates vs. 'm'
+ggplot(data = keeps) + geom_line(aes(x = m, y = OOB_error_rate))
+#Continue with 17 because that is where the OOB error is minimized.
