@@ -66,9 +66,23 @@ colnames(pokemon) <- c('Poke_name','Poke_type','Abilities','Tier','Hit_points',
 colnames(moves) <- c('Index','Move_name','Move_type','Category','Contest','Power_points','Power',
                      'Accuracy','Generation')
 
-# Check that these changes worked
-head(pokemon)
-head(moves)
+## Missing Values ##
+
+# Check for missing values in Pokemon 
+sapply(pokemon, function(x) sum(is.na(x)))
+# No missing values
+
+# Check for missing values in Moves 
+sapply(moves, function(x) sum(is.na(x)))
+# No missing values
+
+## Creating the Binary Y-Variable: Tier ##
+# Turn tier into a binary variable based on if a Pokemon's tier ranking
+# in competitive play. Overused (OU) = 1, Anything Else = 0.
+pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", 1,0)
+# Check that it worked
+unique(pokemon$tier_bin)
+sum(pokemon$tier_bin)
 
 ## Evolution Binary Variable ##
 # Turn evolution into a binary variable based on if a Pokemon 
@@ -81,73 +95,73 @@ pokemon$evol_bin <- ifelse(nchar(pokemon$Next_evolution) >= 3, 1, 0)
 # Checking Result
 unique(pokemon$evol_bin)
 
+## Parsing the Move Variable via the Moves DF ##
 
-
-
-# MISSING VALUES
-#Find missing values in pokemon 
-summary(pokemon)
-sum(is.na(moves))
-#no missing values
-
-
-#'None' in Power and Accuracy 
-#lets replace None in power with 0 and None in Accuracy with 100 
+# Handling 'None' values in Power and Accuracy 
+# Replace 'None' in power with 0
 moves$Power[moves$Power == 'None'] <- 0 
+# Replace 'None' in Accuracy with 100 
 moves$Accuracy[moves$Accuracy == 'None'] <- 100
-#check if it worked 
-moves$Power
-moves$Accuracy
+
+# Check if it worked 
+unique(moves$Power)
+unique(moves$Accuracy)
+
 sum(moves$Accurary =='None')
 sum(moves$Power == 'None')
 
-#BINARY Y (Tier)----
-pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", 1,0)
-head(pokemon)
-summary(pokemon$Tier)
 
-# BINARY VARIABLE - ABILITIES ----
-#type binary
-#Next evolution as yes or no
-#Power into 4 categories 
+## Move Power Variable Cleaning ##
+# Divide power into 4 categories 
+# Categories: High Power, Moderate Power, Low Power, No Power
 moves$Power <- as.numeric(moves$Power)
-summary(moves$Power)
-#High Power, Moderate Power, Low Power, No Power
+
+# Using if else statements convert power back into a factor data type
 moves$Power <- as.factor(ifelse(moves$Power > 200,'High Power',
                                 ifelse(moves$Power >= 100, 'Moderate Power',
                                        ifelse(moves$Power > 0, 'Low Power','No Power'))))
-summary(moves$Power)
+
+# Create subsets for each variable
 HighPower <- subset(moves, moves$Power == 'High Power')
 ModeratePower <- subset(moves, moves$Power == 'Moderate Power')
 LowPower <- subset(moves, moves$Power == 'Low Power')
 NoPower <- subset(moves, moves$Power == 'No Power')
 
+# Flatten the subsets so they can be used for string detection 
 HighPower <- unlist(HighPower$Move_name)
 ModeratePower <- unlist(ModeratePower$Move_name)
 LowPower <- unlist(LowPower$Move_name)
 NoPower <- unlist(NoPower$Move_name)
 
-#testing 
-test <- moveone[3]
-test %in% ModeratePower
+# Test if the method works
+#test <- moveone[3]
+#test %in% ModeratePower
 
-# VARIABLE CLEANING - MOVES  ----
-#counting number of each type of move in the moveslist for each pokemon
+## Moves Power Variable Cleaning ##
 
+# Create empty columns for the assorted counts of varying powered moves
 pokemon$HighPowerCount <- pokemon$ModeratePowerCount <- pokemon$LowPowerCount <-
   pokemon$NoPowerCount <- pokemon$UnknownPowerCount <- pokemon$MoveCount <- 0
+pokemon.shape[0]
 
-head(pokemon)
-for(i in 1:100){
+# Loop for all pokemon in the dataframe
+for(i in 1:nrow(pokemon)){
+  # Set all the sum storage vals to 0
   ModP = 0
   HighP = 0 
   LowP = 0 
   NoP = 0
   Unknown = 0
+  # Get the moves of the ith pokemon
   movelist <- pokemon$Moves[i]
+  # Convert the moves string into a list
   movelist <- unlist(strsplit(gsub("[\\[\\]']", "", movelist, perl = TRUE), ", "))
+  # Get the number of total moves in the moves list
   pokemon$MoveCount[i] <- length(movelist)
+  # Store the length of the move list
   moveCount <- length(movelist)
+  
+  # 
   for(element in movelist){
     if(element %in% HighPower){
       HighP = HighP + 1
@@ -169,35 +183,32 @@ for(i in 1:100){
     pokemon$UnknownPowerCount[i] <- moveCount - total
   }
 }
-#check if it worked
-pokemon[1:50,]
-#this works, some pokemon have the same exact moves 
 
-# DUMMY VARIABLES - TYPES & ABILITIES ----
+## One-Hot Encode Types and Abilities ##
 
 elemental_types <- c("Normal", "Fire", "Water", "Grass", "Electric", "Ice", 
                      "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", 
                      "Rock", "Ghost", "Dark", "Dragon", "Steel", "Fairy")
 
-# Read in the data
+# Read in the list of abilities (for detection) and list of R-friendy abilities names
+# (for column headers) from text files
 abilities_list <- scan(abilitiesLoc, character(), quote = "", sep=",")
 abilities_names_list <- scan(abilitiesNamesLoc, character(), quote = "", sep=",")
 
-str(pokemon)
-summary(pokemon)
-head(pokemon)
-describe(pokemon)
-
-# Create a binary variable for typings
+# Loop for all of the elemental types in the list
 for(i in seq_along(elemental_types)){
+  # Create a binary variable for each type
+  # 1 - The Pokemon is that type, 0 - The Pokemon does not possess that type
   pokemon[elemental_types[i]] <- ifelse(str_detect(pokemon$Poke_type, elemental_types[i]), 1, 0)
 }
 
-# Create a binary variable for abilities
+
+# Loop for all of the abilities in the list
 for(i in seq_along(abilities_list)){
+  # Create a binary variable for each type
+  # 1 - The Pokemon can possess the ability, 0 - The Pokemon can not possess the ability
   pokemon[abilities_names_list[i]] <- ifelse(str_detect(pokemon$Abilities, abilities_list[i]), 1, 0)
 }
 
-# Drop the variables that have been cleaned
-drop <- c('Poke_name','Poke_type','Abilities','Tier','Next_evolution','Moves')
-pokemon = pokemon[,!(names(pokemon) %in% drop)]
+# Drop the variables that have been cleaned and are not needed for analysis
+pokemon = subset(pokemon, select = -c(Poke_name,Poke_type,Abilities,Tier,Next_evolution,Moves) )
