@@ -6,7 +6,6 @@ library(randomForest)
 library(ggplot2)
 library(pROC)
 library(dplyr)
-install.packages('tidyr')
 library(tidyr)
 library(stringr)
 
@@ -70,7 +69,9 @@ sum(moves$Accurary =='None')
 sum(moves$Power == 'None')
 
 #BINARY Y (TIER)----
-pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", 1,0)
+pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", "S", "NS") 
+#S - Standard 
+#NS - Not Standard
 head(pokemon)
 summary(pokemon$Tier)
 
@@ -106,7 +107,7 @@ pokemon$HighPowerCount <- pokemon$ModeratePowerCount <- pokemon$LowPowerCount <-
   pokemon$NoPowerCount <- pokemon$UnknownPowerCount <- pokemon$MoveCount <- 0
 
 head(pokemon)
-for(i in 1:100){
+for(i in 1:nrow(pokemon)){
   ModP = 0
   HighP = 0 
   LowP = 0 
@@ -213,7 +214,6 @@ abilities_names_list = c("Adaptability","Aerilate","Aftermath","Air_Lock","Analy
 str(pokemon)
 summary(pokemon)
 head(pokemon)
-describe(pokemon)
 
 # Create a binary variable for typings
 for(i in seq_along(elemental_types)){
@@ -253,7 +253,7 @@ myforest = randomForest(tier_bin ~ .,
                         importance = TRUE)
 #'importance = TRUE' will help us identify important predictors (later), but it
 # does make the algorithm slower.
-myforest #OOB = 2.86%
+myforest #OOB = 3.13%
 
 #TUNING THE TREE -----
 mtry = c(1:17) #can only be as large as number of X variables
@@ -277,3 +277,40 @@ for (idx in 1:length(mtry)){
 #Plot the OOB Error Rates vs. 'm'
 ggplot(data = keeps) + geom_line(aes(x = m, y = OOB_error_rate))
 #Continue with 17 because that is where the OOB error is minimized.
+
+#FIT FINAL FOREST ----
+finalforest = randomForest(tier_bin ~ ., 
+                           data = train.df, #training data
+                           ntree = 1000, #B - # of classification trees in forest
+                           mtry = 17, #m w/ minimized OOB error
+                           importance = TRUE)
+finalforest #OOB = 3.68%
+
+#Create ROC Curve
+#Positive event is 1, which represents the tier of OU
+pi_hat = predict(finalforest, test.df, type = 'prob')[, 'S']
+
+rocCurve = roc(response = test.df$tier_bin,
+               predictor = pi_hat, 
+               levels = c('NS', 'S'))
+plot(rocCurve, print.thres = TRUE, print.auc = TRUE) 
+#pi* = 0.273
+#AUC = 1.0
+pi_star = coords(rocCurve, 'best', ret = 'threshold')$threshold[1] #extracts 0.2735
+test.df$forest_pred = as.factor(ifelse(pi_hat > pi_star, 'S', 'NS'))
+
+#VARIABLE IMPORTANCE ----
+varImpPlot(finalforest, type = 1) #1) Comp_Bin 2) evol_bin 3) Attack 4) ModeratePowerCount
+
+# 1) Create a Bernoulli RV
+pokemon$tier_bin = ifelse(pokemon$tier_bin == 'S', 1, 0)
+
+#First Model
+m1 = glm(tier_bin ~ Comp_Bin + evol_bin, data = pokemon, 
+         family = binomial(link = 'logit'))
+AIC(m1) # = 6
+
+#Second Model
+m2 = glm(tier_bin ~ Comp_Bin + evol_bin + Attack, data = pokemon, 
+         family = binomial(link = 'logit'))
+AIC(m2) # = 8 ... Greater than AIC of m1, so it was not worth it to add Attack
