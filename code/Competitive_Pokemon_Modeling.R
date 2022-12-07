@@ -76,6 +76,31 @@ sapply(pokemon, function(x) sum(is.na(x)))
 sapply(moves, function(x) sum(is.na(x)))
 # No missing values
 
+## Missing Moves ##
+
+# There are moves missing from the moves dataset due to their names
+# in the source they've been scrapped from containing ' and/or -. 
+# These moves are added by hand here.
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'XScissor', 'Bug', 'Physical', 'Cool', 15, 80, 100, 4)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'Uturn', 'Bug', 'Physical', 'Cute', 20, 70, 100, 4)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'MudSlap', 'Ground', 'Special', 'Cute', 10, 20, 100, 2)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'DoubleEdge', 'Normal', 'Physical', 'Tough', 15, 120, 100, 1)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'WillOWisp', 'Ghost', 'Status', 'Beauty', 15, 'None', 85, 3)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'PowerUp Punch', 'Fighting', 'Physical', 'Tough', 20, 40, 100, 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'Lands Wrath', 'Ground', 'Physical', 'Cute', 10, 90, 100, 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'BabyDoll Eyes', 'Fairy', 'Status', 'Cute', 30, 'None', 100, 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'WakeUp Slap', 'Fighting', 'Physical', 'Tough', 10, 70, 100, 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'SelfDestruct', 'Normal', 'Physical', 'Tough', 5, 200, 100, 1)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'FreezeDry', 'Ice', 'Special', 'Beautiful', 20, 70, 100, 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'Natures Madness', 'Fairy', 'Special', '???', 10, 'None', 90, 7)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'MultiAttack', 'Normal', 'Physical', '???', 10, 120, 100, 7)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'LockOn', 'Normal', 'Status', 'Smart', 5, 'None', 'None', 2)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'TrickorTreat', 'Ghost', 'Status', 'Cute', 20, 'None', 100, 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'Forests Curse', 'Grass', 'Status', 'Clever', 20, 'None', 100, 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'SoftBoiled', 'Normal', 'Status', 'Beauty', 5, 'None', 'None', 1)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'TopsyTurvy', 'Dark', 'Status', 'Clever', 20, 'None', 'None', 6)
+moves[nrow(moves) + 1,] <- c(nrow(moves) + 1, 'Kings Shield', 'Steel', 'Status', 'Cool', 10, 'None', 'None', 6)
+
 ## Creating the Binary Y-Variable: Tier ##
 # Turn tier into a binary variable based on if a Pokemon's tier ranking
 # in competitive play. Overused (OU) = 1, Anything Else = 0.
@@ -144,7 +169,7 @@ pokemon$HighPowerCount <- pokemon$ModeratePowerCount <- pokemon$LowPowerCount <-
   pokemon$NoPowerCount <- pokemon$UnknownPowerCount <- pokemon$MoveCount <- 0
 pokemon.shape[0]
 
-# Loop for all pokemon in the dataframe
+# Loop for all Pokemon in the dataframe
 for(i in 1:nrow(pokemon)){
   # Set all the sum storage vals to 0
   ModP = 0
@@ -161,25 +186,39 @@ for(i in 1:nrow(pokemon)){
   # Store the length of the move list
   moveCount <- length(movelist)
   
-  # 
+  # For each move in the list of moves
   for(element in movelist){
+    # If the element is contained in the list of HighPower moves add 1
+    # to the total high power moves and write the value to the dataframe
     if(element %in% HighPower){
       HighP = HighP + 1
       pokemon$HighPowerCount[i]<- HighP
     }
-    if(element %in% ModeratePower){
+    # If the element is contained in the list of ModeratePower moves add 1
+    # to the total moderate power moves and write the value to the dataframe
+    else if(element %in% ModeratePower){
       ModP = ModP+1
       pokemon$ModeratePowerCount[i]<- ModP
     }
-    if(element %in% LowPower){
+    # If the element is contained in the list of LowPower moves add 1
+    # to the total low power moves and write the value to the dataframe
+    else if(element %in% LowPower){
       LowP = LowP + 1
       pokemon$LowPowerCount[i] <- LowP
     }
-    if(element %in% NoPower){
+    # If the element is contained in the list of NoPower moves add 1
+    # to the total no power moves and write the value to the dataframe
+    else if(element %in% NoPower){
       NoP = NoP + 1
       pokemon$NoPowerCount[i] <- NoP
     }
+    else {
+      print(element)
+    }
+    # Sum the counts of each move type to create a total moves successfully classified
     total = NoP + LowP + ModP + HighP
+    # Subtract the total successfully classified moves from the overall total moves as
+    # a check columns for any moves that might have missed classification
     pokemon$UnknownPowerCount[i] <- moveCount - total
   }
 }
