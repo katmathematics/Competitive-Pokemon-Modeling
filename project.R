@@ -69,7 +69,7 @@ sum(moves$Accurary =='None')
 sum(moves$Power == 'None')
 
 #BINARY Y (TIER)----
-pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", "S", "NS") 
+pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", 1, 0) 
 #S - Standard 
 #NS - Not Standard
 head(pokemon)
@@ -144,8 +144,6 @@ pokemon[1:50,]
 
 # DUMMY VARIABLES - TYPES & ABILITIES ----
 
-pokemon$Comp_Bin <- ifelse(pokemon$Tier == "OU", 1, 0)
-
 elemental_types <- c("Normal", "Fire", "Water", "Grass", "Electric", "Ice", 
                      "Fighting", "Poison", "Ground", "Flying", "Psychic", "Bug", 
                      "Rock", "Ghost", "Dark", "Dragon", "Steel", "Fairy")
@@ -209,8 +207,6 @@ abilities_names_list = c("Adaptability","Aerilate","Aftermath","Air_Lock","Analy
                          "Water_Compaction","Water_Veil","Weak_Armor","White_Smoke",
                          "Wimp_Out","Wonder_Guard","Wonder_Skin","Zen_Mode")
 
-
-
 str(pokemon)
 summary(pokemon)
 head(pokemon)
@@ -253,10 +249,11 @@ myforest = randomForest(tier_bin ~ .,
                         importance = TRUE)
 #'importance = TRUE' will help us identify important predictors (later), but it
 # does make the algorithm slower.
-myforest #OOB = 3.13%
+myforest #OOB = 5.59%
 
 #TUNING THE TREE -----
 mtry = c(1:17) #can only be as large as number of X variables
+mtry = c(8,17,34,68)
 
 #Make Room for 'm' and OOB Error (empty data frame)
 keeps = data.frame(m = rep(NA, length(mtry)), 
@@ -273,44 +270,110 @@ for (idx in 1:length(mtry)){
   keeps[idx, 'm'] = mtry[idx]
   keeps[idx, 'OOB_error_rate'] = mean(predict(tempforest) != train.df$tier_bin)
 }
-
+keeps
 #Plot the OOB Error Rates vs. 'm'
 ggplot(data = keeps) + geom_line(aes(x = m, y = OOB_error_rate))
-#Continue with 17 because that is where the OOB error is minimized.
+#Use 34 because that is where the OOB error is minimized.
 
 #FIT FINAL FOREST ----
 finalforest = randomForest(tier_bin ~ ., 
                            data = train.df, #training data
                            ntree = 1000, #B - # of classification trees in forest
-                           mtry = 17, #m w/ minimized OOB error
+                           mtry = 34, #m w/ minimized OOB error
                            importance = TRUE)
-finalforest #OOB = 3.68%
-
+finalforest #OOB = 5.45%
+str(train.df)
 #Create ROC Curve
 #Positive event is 1, which represents the tier of OU
-pi_hat = predict(finalforest, test.df, type = 'prob')[, 'S']
+pi_hat = predict(finalforest, test.df, type = 'prob')[, '1']
 
 rocCurve = roc(response = test.df$tier_bin,
                predictor = pi_hat, 
-               levels = c('NS', 'S'))
+               levels = c('0','1'))
 plot(rocCurve, print.thres = TRUE, print.auc = TRUE) 
-#pi* = 0.273
-#AUC = 1.0
-pi_star = coords(rocCurve, 'best', ret = 'threshold')$threshold[1] #extracts 0.2735
-test.df$forest_pred = as.factor(ifelse(pi_hat > pi_star, 'S', 'NS'))
+#pi* = 0.0275
+#AUC = 0.776
+pi_star = coords(rocCurve, 'best', ret = 'threshold')$threshold[1] #extracts 0.0275
+test.df$forest_pred = as.factor(ifelse(pi_hat > pi_star, 1, 0))
 
 #VARIABLE IMPORTANCE ----
-varImpPlot(finalforest, type = 1) #1) Comp_Bin 2) evol_bin 3) Attack 4) ModeratePowerCount
+varImpPlot(finalforest, type = 1) # (1) Attack (2) MoveCount (3) ModeratePowerCount
 
 # 1) Create a Bernoulli RV
-pokemon$tier_bin = ifelse(pokemon$tier_bin == 'S', 1, 0)
+#pokemon$tier_bin = ifelse(pokemon$tier_bin == 'S', 1, 0)
 
 #First Model
-m1 = glm(tier_bin ~ Comp_Bin + evol_bin, data = pokemon, 
+m1 = glm(tier_bin ~ Attack + MoveCount, data = pokemon, 
          family = binomial(link = 'logit'))
-AIC(m1) # = 6
+AIC(m1) # = 385.222
 
 #Second Model
-m2 = glm(tier_bin ~ Comp_Bin + evol_bin + Attack, data = pokemon, 
+m2 = glm(tier_bin ~ Attack + MoveCount + ModeratePowerCount, data = pokemon, 
          family = binomial(link = 'logit'))
-AIC(m2) # = 8 ... Greater than AIC of m1, so it was not worth it to add Attack
+AIC(m2) # = 386.9365
+
+#Third Model
+m3 = glm(tier_bin ~ Attack + MoveCount + ModeratePowerCount + LowPowerCount, data = pokemon, 
+           family = binomial(link = 'logit'))
+AIC(m3) # = 383.9805
+
+#Fourth Model
+m4 = glm(tier_bin ~ Attack + MoveCount + ModeratePowerCount + LowPowerCount + 
+           Special_attack, data = pokemon, 
+         family = binomial(link = 'logit'))
+AIC(m4) # = 375.9579
+
+#Fifth Model
+m5 = glm(tier_bin ~ Attack + MoveCount + ModeratePowerCount + LowPowerCount + 
+           Special_attack + NoPowerCount, data = pokemon, 
+         family = binomial(link = 'logit'))
+AIC(m5) # = 377.3397
+
+#Sixth Model
+m6 = glm(tier_bin ~ Attack + MoveCount + ModeratePowerCount + LowPowerCount + 
+           Special_attack + NoPowerCount + UnknownPowerCount, data = pokemon, 
+         family = binomial(link = 'logit'))
+AIC(m6) # = 379.3095
+
+#Model 7
+m7 <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
+          family = binomial(link="logit"))
+AIC(m7)#AIC = 374.9328
+
+#Lowest AIC Model was 'm7', so will continue with that model as final model.
+
+#Final Model
+final_model<- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
+                 family = binomial(link="logit"))
+AIC(final_model)#AIC = 374.9328
+
+#DATA VISUALIZATIONS ----
+#Attack (numeric) --> Histogram is Appropriate
+ggplot(data = pokemon) +
+  geom_histogram(aes(x = Attack)) #aes is for aesthetics
+
+#Low Power Count (numeric) --> Histogram is Appropriate
+ggplot(data = pokemon) +
+  geom_histogram(aes(x = LowPowerCount), binwidth = 10) 
+#Right Skewed --- makes sense because we know that low power is most common among Pokemon
+
+#MoveCount (numeric) --> Histogram is Appropriate
+ggplot(data = pokemon) +
+  geom_histogram(aes(x = MoveCount), binwidth = 40)
+
+#Y Variable - Tier_Bin
+ggplot(data = pokemon)+
+  geom_bar(aes(x= tier_bin)) 
+#Majority of Pokemon are not currently allowed for Standard play.
+
+#Attack: How does it relate to tier probability?
+ggplot(data = pokemon)+
+  geom_histogram(aes(x = Attack, fill = tier_bin), position = 'fill', binwidth = 1)
+
+#Attack
+ggplot(data = pokemon)+
+  geom_histogram(aes(x= Attack, fill = tier_bin), position='fill', binwidth = 0.025) +
+  labs(x = "Attack", y = "Proportion") +
+  ggtitle("Pokemon Tier Classification by Attack") +
+  scale_fill_grey("Tier \nOutcome:")
+
