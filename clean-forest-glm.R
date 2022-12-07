@@ -7,6 +7,7 @@ library(pROC)
 library(dplyr)
 library(tidyr)
 library(stringr)
+library(RColorBrewer)
 
 
 pokemon = read.csv("pokemon-data.csv", sep=";", header=T, stringsAsFactors = TRUE)
@@ -368,5 +369,30 @@ AIC(m4)#376.5889
 final_glm <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
           family = binomial(link="logit"))
 AIC(final_glm)#AIC = 374.9328
+summary(final_glm)
+###### INTERPRETATIONS/PREDICTIONS-----
 
+###### VISUALIZATIONS---- 
+#First variable - Attack 
+#univariate - Attack with tier_bin
+ggplot(pokemon,  aes(y = tier_bin, x = Attack, col = tier_bin)) +
+  geom_jitter()
+
+#Multivariate - Looking at attack and movecount 
+ggplot(data = pokemon, mapping = aes(x = Attack, y = MoveCount)) +
+  geom_point(aes(color = tier_bin))
+#Doesnt appear to be a relationship between Attack and MoveCount or either variable
+#and overuse
+
+#Multivariate - Looking at movecount and lowpower count
+ggplot(data = pokemon, mapping = aes(x = LowPowerCount, y = MoveCount)) +
+  geom_point(aes(color = tier_bin))
+#Positive Relationship between move count and low power count. This makes sense
+#the more moves a pokemon has, the more low power moves they will have
+
+#Mtultivariate - Special_attack and attack
+ggplot(data = pokemon, mapping = aes(x = Special_attack, y = Attack)) +
+  geom_point(aes(color = tier_bin))
+#next step: add line/box to highlight lack of light blue in lower values for
+#each observation
 
