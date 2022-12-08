@@ -251,3 +251,202 @@ for(i in seq_along(abilities_list)){
 
 # Drop the variables that have been cleaned and are not needed for analysis
 pokemon = subset(pokemon, select = -c(Poke_name,Poke_type,Abilities,Tier,Next_evolution,Moves) )
+
+# RANDOM FOREST -----
+# Set a seed so results are repeatable
+RNGkind(sample.kind="default")
+set.seed(123)
+
+# Divide the Pokemon data into a training and testing dataset
+train.idx <- sample(x=1:nrow(pokemon),size = .8*nrow(pokemon))
+train.df <- pokemon[train.idx,]
+test.df <- pokemon[-train.idx,]
+
+# Check the training dataset
+#View(train.df)
+
+# Ensure tier_bin is set to a factor as weirdness occurs when its read numeric
+train.df$tier_bin = as.factor(train.df$tier_bin)
+test.df$tier_bin = as.factor(test.df$tier_bin)
+
+# Check the number of variables in the dataset in order to calculate mtry
+length(colnames(pokemon))
+
+# Create a baseline forest
+myforest <- randomForest(tier_bin ~ ., #remember dangers here
+                         data = train.df, #training data
+                         ntree = 1000, #B
+                         mtry = 17, #choose m - sqrt(297) ~17 
+                         importance = TRUE,
+                         method = 'class')
+
+myforest
+# OOB error rate estimate is 5.59% 
+
+# Create a selective list of mtry values to run as the data has 298 columns
+mtry = c(8,17,34,68,100,150)
+
+# Creates an empty keeps data frame to store mtry 
+# and its corresponding out of bounds error
+keeps <- data.frame(m=rep(NA, length(mtry)),
+                    OOB_error_rate = rep(NA, length(mtry)))
+
+# Run tests of how changing mtry affects the random forest
+for(idx in 1:length(mtry)){
+  print(paste0("Fitting m = ", mtry[idx]))
+  tempforest <- randomForest(tier_bin ~.,
+                             data = train.df,
+                             ntree = 1000,
+                             mtry = mtry[idx]) #mtry is varying
+  keeps[idx,"m"] <- mtry[idx]
+  keeps[idx, "OOB_error_rate"] <- mean(predict(tempforest) != train.df$tier_bin)
+}
+
+keeps
+
+# Plot OOB error rate for different mtry vals
+ggplot(data = keeps)+
+  geom_line(aes(x = m, y = OOB_error_rate))+
+  theme_bw() + labs(x = "m (mtry) value", y = "OOB error rate")+
+  scale_x_continuous(breaks = c(8,17,34,68,100))
+
+# Currently it looks like 34 is the best value for mtry based on OOB
+
+# Build a random forest using the optimal mtry
+final_forest <- randomForest(tier_bin ~ ., #remember dangers here
+                             data = train.df, #training data
+                             ntree = 1000, #B
+                             mtry = 34, #try 2* initial mtry value 
+                             class_wt = c(.01,.99),
+                             importance = TRUE,
+                             method = 'class')
+final_forest
+
+
+## Create ROC Curve ##
+# Positive event is 1 -"OU"
+
+# Extract a vector of probabilities of a positive event
+# and assign it to pi_hat
+pi_hat <- predict(final_forest,test.df, type="prob")[,"1"]
+
+# Create ROC Curve
+rocCurve <- roc(response = test.df$tier_bin, 
+                predictor = pi_hat,
+                levels = c("0","1")) #Order matters here
+
+# Visualize the ROC Curve
+plot(rocCurve, print.thres=TRUE, print.auc=TRUE)
+
+# Save the optimal to pi_star
+pi_star <- coords(rocCurve, "best", ret = "threshold")$threshold[1]
+# Interpretation: If the forest predicts an overuse probability greater than 
+# 0.0165 (pi_star), we predict that the Pokemon is overused. Otherwise, we predict a loss. 
+
+# Overwrite the old predictions with the improved ones that use pi_star
+test.df$forest_pred <- as.factor(ifelse(pi_hat > pi_star,"1","0"))
+
+## INTERPRETATION USING FOREST ##
+# Using random forests as a tool to understand relationships between the 
+# x-variables and tier (y-variable). Random forests will give us 
+# a ranked list of variable importance, i.e. how much would the 
+# out of sample error suffer if the variable was removed from 
+# the model. 
+
+varImpPlot(final_forest, type=1) #must specify importance = TRUE in forest 
+# Plot contains too many variables to be elegant, but 
+# does convey which variables are the most important
+
+## Random Forests vs GLMs ##
+# RF pro: automatic variable selection 
+# RF con: no directional effects 
+# Logistic regression pro: very good interpretations/ directional effects 
+# Logistic regression con: no automatic variable selection 
+
+# As these two techniques compliment each others weaknesses, 
+# we will pair random forest and logistic regression.
+# Random forest will be used both as a prediction tool 
+# AND to help inform what variables go into a logistic regression. 
+
+# LOGISTIC REGRESSION -----
+
+## Create a Bernoulli RV ##
+
+# As the logistic regression is not a predictive tool, pass
+# it the entire data set.
+
+# Convert tier_bin from factor to numeric
+pokemon$tier_bin <- as.numeric(pokemon$tier_bin) 
+
+# Make a copy of the data
+data <- pokemon
+# Check the dimensions of the data
+dim(data)
+
+quartiles <- quantile(data$MoveCount, probs=c(.25, .75), na.rm = FALSE)
+IQR <- IQR(data$MoveCount)
+
+Lower <- quartiles[1] - 1.5*IQR
+Upper <- quartiles[2] + 1.5*IQR 
+
+data_no_outlier <- subset(data, data$MoveCount > Lower & data$MoveCount < Upper)
+
+dim(data_no_outlier)
+plot(data_no_outlier$MoveCount)
+
+#This is with mtry = 68
+m1 <- glm(tier_bin ~ Attack + Special_attack + MoveCount, data = pokemon, 
+          family = binomial(link="logit"))
+
+# Warning message: fitted probabilities numerically 0 or 1 occurred  
+# Can ignore, increase sample size, remove outliers
+AIC(m1) #375.6081
+
+plot(pokemon$ModeratePowerCount)
+m2 <- glm(tier_bin ~ Attack + Special_attack + MoveCount + ModeratePowerCount, data = pokemon, 
+          family = binomial(link="logit"))
+AIC(m2) #376.5345
+# Forest implied importance and using AIC to gauge whether they should be kept. 
+
+# This is with mtry = 34 
+m3 <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
+          family = binomial(link="logit"))
+AIC(m3) #374.9328
+
+m4 <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack + UnknownPowerCount, data = pokemon, 
+          family = binomial(link="logit"))
+AIC(m4) #376.5889
+
+# Final Model with lowest AIC
+final_glm <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
+                 family = binomial(link="logit"))
+AIC(final_glm) #AIC = 374.9328
+summary(final_glm)
+
+# INTERPRETATIONS/PREDICTIONS-----
+
+# VISUALIZATIONS---- 
+
+# First variable: Attack 
+# Univariate - Attack & Tier_Bin
+ggplot(pokemon,  aes(y = tier_bin, x = Attack, col = tier_bin)) +
+  geom_jitter()
+
+# Multivariate - Attack & MoveCount 
+ggplot(data = pokemon, mapping = aes(x = Attack, y = MoveCount)) +
+  geom_point(aes(color = tier_bin))
+# Doesn't appear to be a relationship between Attack and MoveCount 
+# or either variable and being in the Overused tier
+
+# Multivariate - MoveCount and LowPower count
+ggplot(data = pokemon, mapping = aes(x = LowPowerCount, y = MoveCount)) +
+  geom_point(aes(color = tier_bin))
+# Positive Relationship between MoveCount and LowPowerCount. This is logical as
+# the more moves a Pokemon has, the more low power moves they will have
+
+# Multivariate - Special_Attack and Attack
+ggplot(data = pokemon, mapping = aes(x = Special_attack, y = Attack)) +
+  geom_point(aes(color = tier_bin))
+
+# Next step: add line/box to highlight lack of light blue in lower values for
+# each observation
