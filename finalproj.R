@@ -10,7 +10,7 @@ library(stringr)
 
 
 ####### READ IN DATA-------
-pokemon <-  read.csv("~/Desktop/archive/pokemon-data.csv", sep=";", stringsAsFactors=F)
+pokemon <-  read.csv("~/Desktop/archive/pokemon-data.csv", sep=";", stringsAsFactors=T)
 head(pokemon)
 str(pokemon)
 #String - Name, Tier
@@ -56,7 +56,6 @@ sum(moves$Power == 'None')
 
 #### binary Y ----
 pokemon$tier_bin <- ifelse(pokemon$Tier =="OU", 1,0)
-head(pokemon)
 summary(pokemon$Tier)
 
 #Abilities binary ----
@@ -125,4 +124,19 @@ for(i in 1:100){
 #check if it worked
 pokemon[1:50,]
 #this works, some pokemon have the same exact moves 
+
+
+
+##### RANDOM FOREST -----
+#x variable selection
+str(pokemon)
+
+
+##### VISUALIZATIONS---- 
+#based on random forest
+hist(pokemon$tier_bin)
+plot(pokemon$Special_attack)
+plot(pokemon$Special_defense)
+plot(pokemon$Attack)
+plot(pokemon$Defense)
 
