@@ -1,6 +1,15 @@
 # PROJECT DESCRIPTION ----
-# This analysis is a final project for STAT 172
-# Contributors: Katja Mathesius, Amanda Perrira, Ellie Reece
+#
+# Contributors (Listed Alphabetical by Last Name): Katja Mathesius, Amanda Perrira, Ellie Reece
+#
+# Description:
+# This analysis of competitive Pokemon is a final project for STAT 172
+# The project serves to demonstrate ability with the use of Random Forest and GLM models
+# in a real world application setting.
+#
+# Data:
+# Data for this project is taken from Kaggle user Nicholas Vadivelu: https://www.kaggle.com/datasets/n2cholas/competitive-pokemon-dataset?select=pokemon-data.csv
+#
 ####
 # INITIAL ----
 # Clear workspace
@@ -22,7 +31,7 @@ moveDataLoc <- "data/move-data.csv"
 
 # Location of the abilities list on your device
 abilitiesLoc <- "data/lists/abilities_list.txt"
-# Location of the abilites names list on your device
+# Location of the abilities names list on your device
 abilitiesNamesLoc <- "data/lists/abilities_names_list.txt"
 
 # DATA READ-IN & EXPLORATION ----
@@ -417,13 +426,15 @@ m4 <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack + Unkno
           family = binomial(link="logit"))
 AIC(m4) #376.5889
 
-# Final Model with lowest AIC
+# Final Model with lowest AIC: Attack, low power, move count, special attack 
 final_glm <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
                  family = binomial(link="logit"))
 AIC(final_glm) #AIC = 374.9328
+
 summary(final_glm)
 
 # INTERPRETATIONS/PREDICTIONS-----
+
 
 # VISUALIZATIONS---- 
 
