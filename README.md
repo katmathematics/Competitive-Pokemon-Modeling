@@ -1,7 +1,7 @@
 # Competitive Pokemon Modeling
 
 ---
-* Disclaimer: The summary "about" for the project is fictious. This respository is a final project for STAT 172 - Data Mining & Generalized Linear Models, and is not tied to real world competitive Pokémon in any way.
+* Disclaimer: The summary "about" for the project is fictitious. This respository is a final project for STAT 172 - Data Mining & Generalized Linear Models, and is not tied to real world competitive Pokémon in any way.
 ---
 
 ## About
