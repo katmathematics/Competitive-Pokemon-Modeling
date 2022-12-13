@@ -11,7 +11,7 @@ With the release of the 9th generation of Pokémon games, Pokémon: Scarlet & Vi
 ---
 ## Data
 
-Data is sourced from kaggle: ["Complete Competitive Pokemon Dataset" provided by Nicholas Vadivelu](https://www.kaggle.com/datasets/n2cholas/competitive-pokemon-dataset?select=pokemon-data.csv). The data set considers all Pokémon up to the 7th generation (Pokémon: Sun & Moon), as well as data for all moves in the games up to that point. 
+Data is sourced from kaggle: ["Complete Competitive Pokemon Dataset"](https://www.kaggle.com/datasets/n2cholas/competitive-pokemon-dataset?select=pokemon-data.csv) provided by Nicholas Vadivelu. The data set considers all Pokémon up to the 7th generation (Pokémon: Sun & Moon), as well as data for all moves in the games up to that point. 
 
 ---
 
