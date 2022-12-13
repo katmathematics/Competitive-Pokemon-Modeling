@@ -298,13 +298,10 @@ pi_star <- coords(rocCurve, "best", ret = "threshold")$threshold[1]
 
 #Let's overwrite our old predictions with these better ones 
 test.df$forest_pred <- as.factor(ifelse(pi_hat > pi_star,"1","0"))
-<<<<<<< HEAD
 test.df$forest_pred
 
 
 
-=======
->>>>>>> 28db69bbd328fdbcb3bed1335f97df26550e0ba8
 #This is more acceptable than the default predict() function 
 #because it uses pi_star, rather than the default 0.5.
 
@@ -318,10 +315,7 @@ varImpPlot(final_forest, type=1) #must specify importance = TRUE in forest
 #too many variables to include in this plot, but a few seemingly more important 
 #ones for sure 
 
-<<<<<<< HEAD
-=======
-#recall our discussion on variable selection on GLMs (we didnt)
->>>>>>> 28db69bbd328fdbcb3bed1335f97df26550e0ba8
+
 ### RF pro: automatic variable selection 
 ### RF con: no directional effects 
 ### logistic regression con: no automatic variable selection 
@@ -333,11 +327,10 @@ varImpPlot(final_forest, type=1) #must specify importance = TRUE in forest
 
 #### LOGISTIC REGRESSION-----
 #First create a bernoulli RV 
-<<<<<<< HEAD
-=======
+
 #okay to use whole dataset here because we are not using the logistic regression 
 #as a predictive tool. 
->>>>>>> 28db69bbd328fdbcb3bed1335f97df26550e0ba8
+
 #pokemon$tier_bin <- ifelse(pokemon$tier_bin == "W",1,0)
 pokemon$tier_bin <- as.numeric(pokemon$tier_bin)
 
@@ -345,7 +338,7 @@ data <- pokemon
 dim(data)
 ## [1] 150   4
 
-<<<<<<< HEAD
+
 
 #This is with mtry = 68
 m0 <- glm(tier_bin ~ Attack + UnknownPowerCount + 
@@ -353,7 +346,6 @@ m0 <- glm(tier_bin ~ Attack + UnknownPowerCount +
           family = binomial(link="logit"))
 AIC(m0) #377.5363
 
-=======
 quartiles <- quantile(data$MoveCount, probs=c(.25, .75), na.rm = FALSE)
 IQR <- IQR(data$MoveCount)
 
@@ -366,7 +358,7 @@ dim(data_no_outlier)
 plot(data_no_outlier$MoveCount)
 
 #This is with mtry = 68
->>>>>>> 28db69bbd328fdbcb3bed1335f97df26550e0ba8
+
 m1 <- glm(tier_bin ~ Attack + Special_attack + MoveCount, data = pokemon, 
           family = binomial(link="logit"))
 #warning message: fitted probabilities numerically 0 or 1 occured  
@@ -388,8 +380,7 @@ m4 <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack + Unkno
           family = binomial(link="logit"))
 AIC(m4)#376.5889
 
-#Final Model with lowest AIC
-<<<<<<< HEAD
+
 #My thoughts with move count variable - I think we should leave it in because 
 #AIC comparisson suggets that the model with move count is better 
 #Though total move count is a sum of each individual power count, it is representing 
@@ -399,16 +390,15 @@ AIC(m4)#376.5889
 final_glm <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
           family = binomial(link="logit"))
 
-=======
 final_glm <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack, data = pokemon, 
           family = binomial(link="logit"))
->>>>>>> 28db69bbd328fdbcb3bed1335f97df26550e0ba8
+
 AIC(final_glm)#AIC = 374.9328
 summary(final_glm)
 ###### INTERPRETATIONS/PREDICTIONS-----
 
 ###### VISUALIZATIONS---- 
-<<<<<<< HEAD
+
 #Univariate distributions - 
 #tier
 data$tier_bin = as.factor(data$tier_bin)
@@ -513,7 +503,7 @@ ggplot(data = data, mapping = aes(x = MoveCount, y = LowPowerCount)) +
 #we also observe that pokemon with move count below 50 and low power move count below 50
 #are all not overused
 #extremely low values for both variable may indicate non-overuse
-=======
+
 #First variable - Attack 
 #univariate - Attack with tier_bin
 ggplot(pokemon,  aes(y = tier_bin, x = Attack, col = tier_bin)) +
@@ -535,6 +525,5 @@ ggplot(data = pokemon, mapping = aes(x = LowPowerCount, y = MoveCount)) +
 ggplot(data = pokemon, mapping = aes(x = Special_attack, y = Attack)) +
   geom_point(aes(color = tier_bin))
 #next step: add line/box to highlight lack of light blue in lower values for
-#each observation
->>>>>>> 28db69bbd328fdbcb3bed1335f97df26550e0ba8
+#each observation>>>>>>> 28db69bbd328fdbcb3bed1335f97df26550e0ba8
 
