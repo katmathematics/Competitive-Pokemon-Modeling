@@ -423,30 +423,109 @@ final_glm <- glm(tier_bin ~ Attack + LowPowerCount + MoveCount + Special_attack,
 AIC(final_glm) #AIC = 374.9328
 summary(final_glm)
 
-# INTERPRETATIONS/PREDICTIONS-----
+###### VISUALIZATIONS---- 
 
-# VISUALIZATIONS---- 
+#Univariate distributions - 
+#tier
+data$tier_bin = as.factor(data$tier_bin)
+ggplot(data, aes(x=tier_bin))+
+  geom_bar(fill = "cornflowerblue",color="black") + 
+  geom_text(aes(label=..count..), stat = "count",vjust = 1.5, color = "black")+
+  labs(x="Overused/Not Overused",y="Frequency", title = "Pokémon by tier")+
+  scale_x_discrete("Pokémon Tier", 
+                   labels = c("Not Overused", "Overused"))
+#We see quite the unbalance in our data here
+#862 pokemon are not overused, while only 56 are. 
 
-# First variable: Attack 
-# Univariate - Attack & Tier_Bin
-ggplot(pokemon,  aes(y = tier_bin, x = Attack, col = tier_bin)) +
-  geom_jitter()
+#First variable - Attack 
+#Attack distribution by tier 
+ggplot(data, 
+       aes(x = Attack, 
+           fill = tier_bin)) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Pokémon Attack Statistic Distribution by Tier", x = "Attack",y = "Density")+
+  scale_fill_discrete("Pokémon Tier", 
+                      labels = c("Not Overused", "Overused"))
+#Comments: The mean attack value for overused pokemon appears to be higher than 
+#the mean attack value for non-overused pokemon
+#The distribution for overused looks slightly right skewed, 
+#with a greater density of values occuring at higher attack levels. 
+#We see the blue lays to the right of the red, which indicates that 
+#overused pokemon have a higher attack value than non overused ones 
 
-# Multivariate - Attack & MoveCount 
-ggplot(data = pokemon, mapping = aes(x = Attack, y = MoveCount)) +
-  geom_point(aes(color = tier_bin))
-# Doesn't appear to be a relationship between Attack and MoveCount 
-# or either variable and being in the Overused tier
+#Special 
+ggplot(data, 
+       aes(x = Special_attack, 
+           fill = tier_bin)) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Pokémon Special Attack Statistic Distribution by Tier", x = "Special Attack", y = "Density")+
+  scale_fill_discrete("Pokémon Tier", 
+                      labels = c("Not Overused", "Overused"))
+#Comments: the distribution of special attack for non overused pokemon
+#is slightly right skewed, whereas the distribution of special attack for 
+#overused pokemon is more normal. 
+#A higher frequency of non overused pokemon have a lower special attack
+#we see that blue lays to the right of the red, which indicates that overused
+#pokemon have a higher special attack value than non overused pokemon. 
 
-# Multivariate - MoveCount and LowPower count
-ggplot(data = pokemon, mapping = aes(x = LowPowerCount, y = MoveCount)) +
-  geom_point(aes(color = tier_bin))
-# Positive Relationship between MoveCount and LowPowerCount. This is logical as
-# the more moves a Pokemon has, the more low power moves they will have
+#Move Count
+ggplot(data, 
+       aes(x = MoveCount, 
+           fill = tier_bin)) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Pokémon Move Count Distribution by Tier", x = "Move Count", y = "Density")+
+  scale_fill_discrete("Pokémon Tier", 
+                      labels = c("Not Overused", "Overused"))
+#Comments: 
+#unlike the previous 2 plots, we do not see the blue laying much farther to the right of
+#red. In some places this is true, but not througohut. 
+#We see a higher density for non-overused pokemon around the mean, and a lower 
+#density around more extreme values, when compared to overused poke which
+#have a lower density centered around the mean and greater density 
+#elsewhere, like in extreme values. 
+#We observe a small bump in the far right of the plot for overused pokemon
+#there are some overused with an extremely high move count, but no
+#non-overused ones matching that count. 
 
-# Multivariate - Special_Attack and Attack
-ggplot(data = pokemon, mapping = aes(x = Special_attack, y = Attack)) +
-  geom_point(aes(color = tier_bin))
+ggplot(data, 
+       aes(x = LowPowerCount, 
+           fill = tier_bin)) +
+  geom_density(alpha = 0.4) +
+  labs(title = "Pokémon Low Power Move Count Distribution by Tier", x = "Low Power Move Count", y = "Density")+
+  scale_fill_discrete("Pokémon Tier", 
+                      labels = c("Not Overused", "Overused"))
+#Comments: 
+#We see a very similar relationship to move count. 
+#We suspect this may be due to the fact that move count and low power count 
+#are highly related. 
+#We still feel that it is beneficial to include both in our model because
+#low power count considers the power aspect of the moves list, 
+#while move count only considers that length of that list and not the types of 
+#moves in it. 
 
-# Next step: add line/box to highlight lack of light blue in lower values for
-# each observation
+#Mtultivariate - Special_attack and attack
+ggplot(data = data, mapping = aes(x = Special_attack, y = Attack)) +
+  geom_point(aes(color = tier_bin))+
+  labs(title = "Pokémon Special Attack vs Attack Statistic by Tier", x= "Special Attack",y = "Attack")+
+  scale_color_discrete("Pokémon Tier",
+                       labels = c("Not Overused", "Overused"))
+
+#Comments:
+#We see a positive relationship between attack and special attack 
+#We also see random scatter of blue dots for special attack and attack values 
+#both above 50. 
+#We only observe one overused pokemon with a special attack and attack lower 
+#than 50.
+#though moderate to high special attack and attack values may not 
+#indicate overuse, very low values for both might 
+
+ggplot(data = data, mapping = aes(x = MoveCount, y = LowPowerCount)) +
+  geom_point(aes(color = tier_bin))+
+  labs(title = "Pokémon Move Count vs Low Power Move Count by Tier", x = "Move Count",y = "Low Power Move Count")+
+  scale_color_discrete("Pokémon Tier",
+                       labels = c("Not Overused", "Overused"))
+#Comments: 
+#We observe a strong, positive relationship between the two variables
+#we also observe that pokemon with move count below 50 and low power move count below 50
+#are all not overused
+#extremely low values for both variable may indicate non-overuse
