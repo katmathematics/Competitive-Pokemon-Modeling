@@ -433,6 +433,13 @@ AIC(final_glm) #AIC = 374.9328
 
 summary(final_glm)
 
+# Coefficients for the finalized glm
+coef_final <- coef(final_glm)
+coef_final
+
+# Odds Ratios
+exp(coef_final)
+
 # INTERPRETATIONS/PREDICTIONS-----
 
 
